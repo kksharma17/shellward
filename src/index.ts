@@ -6,6 +6,11 @@ import { setupOutputScanner } from './layers/output-scanner'
 import { setupToolBlocker } from './layers/tool-blocker'
 import { setupInputAuditor } from './layers/input-auditor'
 import { setupSecurityGate } from './layers/security-gate'
+import { registerSecurityCommand } from './commands/security'
+import { registerAuditCommand } from './commands/audit'
+import { registerHardenCommand } from './commands/harden'
+import { registerScanPluginsCommand } from './commands/scan-plugins'
+import { registerCheckUpdatesCommand } from './commands/check-updates'
 import { DEFAULT_CONFIG, resolveLocale } from './types'
 import type { ClawGuardConfig } from './types'
 
@@ -79,6 +84,16 @@ export default {
       .filter(([, v]) => v)
       .map(([k]) => k)
     api.logger.info(`[ClawGuard] ${enabled.length} layers enabled: ${enabled.join(', ')}`)
+
+    // Register slash commands (if registerCommand is available)
+    if (api.registerCommand) {
+      registerSecurityCommand(api, config)
+      registerAuditCommand(api, config)
+      registerHardenCommand(api, config)
+      registerScanPluginsCommand(api, config)
+      registerCheckUpdatesCommand(api, config)
+      api.logger.info('[ClawGuard] 5 commands registered: /security /audit /harden /scan-plugins /check-updates')
+    }
 
     log.write({
       level: 'INFO',
