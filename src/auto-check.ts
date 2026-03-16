@@ -38,7 +38,7 @@ function getOpenClawVersion(): string {
 /**
  * 检查 OpenClaw 是否受已知漏洞影响
  */
-async function checkOpenClawVulns(version: string): Promise<{ id: string; severity: string; description: string }[]> {
+async function checkOpenClawVulns(version: string, locale: 'zh' | 'en' = 'en'): Promise<{ id: string; severity: string; description: string }[]> {
   const vulns: { id: string; severity: string; description: string }[] = []
   try {
     const { vulns: db } = await fetchVulnDB()
@@ -51,7 +51,9 @@ async function checkOpenClawVulns(version: string): Promise<{ id: string; severi
         vulns.push({
           id: v.id,
           severity: v.severity || 'MEDIUM',
-          description: (v as any).description_zh || (v as any).description_en || v.id,
+          description: locale === 'zh'
+            ? ((v as any).description_zh || (v as any).description_en || v.id)
+            : ((v as any).description_en || (v as any).description_zh || v.id),
         })
       }
     }
@@ -121,10 +123,10 @@ function scanMcpConfig(): { config: string; risk: string }[] {
 /**
  * 执行全部自动检查，返回结果（供启动时告警用）
  */
-export async function runAutoCheck(): Promise<AutoCheckResult> {
+export async function runAutoCheck(locale: 'zh' | 'en' = 'en'): Promise<AutoCheckResult> {
   const ocVersion = getOpenClawVersion()
   const [openclawVulns, pluginRisks, mcpRisks] = await Promise.all([
-    checkOpenClawVulns(ocVersion),
+    checkOpenClawVulns(ocVersion, locale),
     Promise.resolve(scanPluginsQuick()),
     Promise.resolve(scanMcpConfig()),
   ])
@@ -136,7 +138,7 @@ export async function runAutoCheck(): Promise<AutoCheckResult> {
  * 启动时执行检查，发现问题时通过 logger 告警
  */
 export function runAutoCheckOnStartup(logger: { warn: (s: string) => void }, locale: 'zh' | 'en'): void {
-  runAutoCheck().then(result => {
+  runAutoCheck(locale).then(result => {
     const zh = locale === 'zh'
     const lines: string[] = []
 
@@ -154,7 +156,7 @@ export function runAutoCheckOnStartup(logger: { warn: (s: string) => void }, loc
         lines.push(`  ${r.plugin}: ${r.risk}`)
       }
       if (result.pluginRisks.length > 3) {
-        lines.push(`  ... 共 ${result.pluginRisks.length} 项`)
+        lines.push(zh ? `  ... 共 ${result.pluginRisks.length} 项` : `  ... ${result.pluginRisks.length} total`)
       }
       lines.push(zh ? '  请运行 /scan-plugins 查看详情' : '  Run /scan-plugins for details')
     }
@@ -171,7 +173,7 @@ export function runAutoCheckOnStartup(logger: { warn: (s: string) => void }, loc
     }
 
     if (lines.length > 0) {
-      logger.warn('[ShellWard] 自动安全检查:\n' + lines.join('\n'))
+      logger.warn((zh ? '[ShellWard] 自动安全检查:\n' : '[ShellWard] Auto security check:\n') + lines.join('\n'))
     }
   }).catch(() => { /* 静默失败，不阻塞 */ })
 }

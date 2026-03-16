@@ -195,7 +195,7 @@ export function registerHardenCommand(api: any, config: ShellWardConfig) {
       // Firewall
       lines.push(zh ? '**防火墙限制** — 仅允许必要出站:' : '**Firewall** — allow only necessary outbound:')
       lines.push('```bash')
-      lines.push('# 只允许 HTTPS 出站（API 调用），禁止其他出站')
+      lines.push(zh ? '# 只允许 HTTPS 出站（API 调用），禁止其他出站' : '# Allow only HTTPS outbound (API calls), block everything else')
       lines.push('sudo iptables -A OUTPUT -p tcp --dport 443 -j ACCEPT')
       lines.push('sudo iptables -A OUTPUT -p tcp --dport 80 -j ACCEPT')
       lines.push('sudo iptables -A OUTPUT -p udp --dport 53 -j ACCEPT  # DNS')
