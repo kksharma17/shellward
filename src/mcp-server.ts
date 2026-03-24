@@ -1,4 +1,4 @@
-#!/usr/bin/env npx tsx
+#!/usr/bin/env node
 // src/mcp-server.ts — ShellWard MCP Server
 //
 // Exposes ShellWard's 8-layer security engine as an MCP server.
