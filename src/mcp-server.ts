@@ -254,7 +254,7 @@ function handleRequest(req: JsonRpcRequest): JsonRpcResponse | null {
         jsonrpc: '2.0',
         id: id ?? null,
         result: {
-          protocolVersion: '2024-11-05',
+          protocolVersion: '2025-03-26',
           capabilities: { tools: {} },
           serverInfo: {
             name: 'shellward',
@@ -337,6 +337,9 @@ function handleRequest(req: JsonRpcRequest): JsonRpcResponse | null {
 
 let rawBuffer = Buffer.alloc(0)
 
+// Keep event loop alive — prevent Node.js from exiting before mcp-proxy connects
+process.stdin.resume()
+
 process.stdin.on('data', (chunk: Buffer) => {
   rawBuffer = Buffer.concat([rawBuffer, chunk])
 
@@ -381,6 +384,7 @@ function send(msg: JsonRpcResponse) {
 }
 
 process.stdin.on('end', () => process.exit(0))
+process.stdin.on('error', () => process.exit(1))
 
 // Log to stderr so it doesn't interfere with stdio protocol
 process.stderr.write(`[ShellWard MCP] Server started (mode: ${guard.config.mode}, locale: ${guard.locale})\n`)
