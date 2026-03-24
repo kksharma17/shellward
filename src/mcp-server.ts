@@ -19,6 +19,7 @@
 
 import { ShellWard } from './core/engine.js'
 import { readFileSync } from 'fs'
+import { createInterface } from 'readline'
 import { fileURLToPath } from 'url'
 import { dirname, join } from 'path'
 
@@ -332,58 +333,36 @@ function handleRequest(req: JsonRpcRequest): JsonRpcResponse | null {
 }
 
 // ===== Stdio Transport =====
-// Use raw Buffer to handle UTF-8 multi-byte characters correctly.
-// Content-Length is in bytes, not characters.
+// MCP stdio: newline-delimited JSON-RPC messages (no Content-Length framing).
+// Each message is a single JSON object followed by \n.
+// Messages MUST NOT contain embedded newlines.
 
-let rawBuffer = Buffer.alloc(0)
+const rl = createInterface({ input: process.stdin, terminal: false })
 
-// Keep event loop alive — prevent Node.js from exiting before mcp-proxy connects
-process.stdin.resume()
+rl.on('line', (line: string) => {
+  const trimmed = line.trim()
+  if (!trimmed) return
 
-process.stdin.on('data', (chunk: Buffer) => {
-  rawBuffer = Buffer.concat([rawBuffer, chunk])
-
-  while (true) {
-    const headerEnd = rawBuffer.indexOf('\r\n\r\n')
-    if (headerEnd === -1) break
-
-    const header = rawBuffer.slice(0, headerEnd).toString('ascii')
-    const lengthMatch = header.match(/Content-Length:\s*(\d+)/i)
-    if (!lengthMatch) {
-      rawBuffer = rawBuffer.slice(headerEnd + 4)
-      continue
+  try {
+    const req = JSON.parse(trimmed) as JsonRpcRequest
+    const res = handleRequest(req)
+    if (res) {
+      send(res)
     }
-
-    const contentLength = parseInt(lengthMatch[1], 10)
-    const bodyStart = headerEnd + 4
-    if (rawBuffer.length < bodyStart + contentLength) break
-
-    const body = rawBuffer.slice(bodyStart, bodyStart + contentLength).toString('utf8')
-    rawBuffer = rawBuffer.slice(bodyStart + contentLength)
-
-    try {
-      const req = JSON.parse(body) as JsonRpcRequest
-      const res = handleRequest(req)
-      if (res) {
-        send(res)
-      }
-    } catch {
-      send({
-        jsonrpc: '2.0',
-        id: null,
-        error: { code: -32700, message: 'Parse error' },
-      })
-    }
+  } catch {
+    send({
+      jsonrpc: '2.0',
+      id: null,
+      error: { code: -32700, message: 'Parse error' },
+    })
   }
 })
 
 function send(msg: JsonRpcResponse) {
-  const body = JSON.stringify(msg)
-  const header = `Content-Length: ${Buffer.byteLength(body)}\r\n\r\n`
-  process.stdout.write(header + body)
+  process.stdout.write(JSON.stringify(msg) + '\n')
 }
 
-process.stdin.on('end', () => process.exit(0))
+rl.on('close', () => process.exit(0))
 process.stdin.on('error', () => process.exit(1))
 
 // Log to stderr so it doesn't interfere with stdio protocol
